@@ -1,0 +1,99 @@
+#include<iostream>
+#include<conio.h>
+
+using namespace std;
+
+int counter = 0;// Mendeklarasikan variabel global untuk menghitung transaksi
+const int MAX = 100;
+int totalSaldo[MAX];// Mendeklarasikan array untuk menyimpan saldo
+
+void tampilkanMenu(){// Prosedur untuk menampilkan pilihan menu
+    cout << "\nApa yang ingin Anda lakukan\n";
+    cout << "1. Isi ulang saldo\n";
+    cout << "2. Check saldo\n";
+    cout << "3. Tarik tunai\n";
+    cout << "4. Keluar\n\n";
+}
+
+int isiUlangSaldo(int jumlahUang) { // Fungsi untuk isi ulang saldo
+    cout << "Berapa jumlah saldo yang ingin dimasukkan: Rp.";
+    cin >> jumlahUang;//Mengambil jumlah saldo dari input pengguna
+
+    counter++;// Menambahkan hitungan untuk jumlah transaksi
+
+    if (jumlahUang >= 0){// Memeriksa apakah jumlah uang yang dimasukkan lebih besar dari atau sama dengan 0
+        for (int i = 0; i < counter; i++){// Loop untuk Menambahkan jumlah uang yang ditambahkan ke saldo
+            totalSaldo[i] += jumlahUang;
+        }
+    cout << "Saldo berhasil ditambahkan.\n";
+    getch();
+    }
+    else if (jumlahUang < 0){// Memeriksa apakah jumlah uang yang dimasukkan kurang dari atau sama dengan 0
+        cout << "Saldo gagal ditambahkan.\n";// Pesan saldo gagal untuk ditambahkan
+        cout << "Silahkan kembali\n";
+        getch();
+    }
+    else {// Menangani input yang salah
+        cout << "Inputan salah\nSilahkan ulangi.\n";
+        isiUlangSaldo(jumlahUang);// Memanggil fungsi secara rekursif untuk mencoba mengisi saldo lagi
+    }
+
+    return totalSaldo[counter];// Return nilai saldo dengan array berdasarkan jumlah counter
+}
+
+void checkSaldo(int jumlahUang){//Prosedur untuk memeriksa saldo
+    cout << "Saldo tersisa: Rp." << *totalSaldo << endl;
+    getch();
+}
+
+int tarikSaldo(int jumlahUang){// Fungsi untuk menarik saldo
+    cout << "Berapa jumlah tunai yang ingin ditarik: Rp.";
+    cin >> jumlahUang;// Menagmbil jumlah saldo yang ingin ditarik
+
+    if (jumlahUang <= *totalSaldo){// Memeriksa apakah jumlah penarikan kurang dari atau sama dengan saldo
+        for (int i = 0; i < counter; i++){// Loop untuk mengurangi jumlah uang penarikan dari saldo
+            totalSaldo[i] -= jumlahUang;
+        }
+        cout << "Saldo tersisa: Rp." << *totalSaldo << endl;// Pemberitahuan keterangan sisa saldo
+        getch();
+    }
+    else if (jumlahUang >= *totalSaldo){// Memeriksa apakah jumlah penarikan lebih besar dari atau sama dengan saldo
+        cout << "Saldo kurang, tidak dapat melakukan tarik tunai\nIsi terlebih dahulu saldo Anda.\n";// pesan saldo tidak mencukupi
+    }
+    else {// Menangani input yang salah
+        cout << "Inputan salah\nSilahkan ulangi.\n";
+        tarikSaldo(jumlahUang);// Memanggil fungsi secara rekursif untuk mencoba penarikan lagi
+    }
+    return totalSaldo[counter];// Return nilai saldo dengan array berdasarkan jumlah counter
+}
+
+int main(){// Fungsi utama
+    int jumlahUang;// Mendeklarasikan variabel untuk menyimpan jumlah uang
+
+    int pilihan;// Mendeklarasikan variabel untuk menyimpan pilihan
+
+    cout << "==== SELAMAT DATANG DI ATM ====\n";
+
+    do {// Loop untuk menampilkan menu dan menangani pilihan
+        tampilkanMenu();// Memanggil fungsi untuk menampilkan menu
+        cout << "Masukkan pilihan: "; cin >> pilihan;
+        if (pilihan == 1){
+            isiUlangSaldo(jumlahUang);// Memanggil fungsi untuk isi ulang saldo
+        }
+        else if (pilihan == 2){
+            checkSaldo(jumlahUang);// Memanggil prosedur untuk memeriksa saldo
+        }
+        else if (pilihan == 3){
+            tarikSaldo(jumlahUang);// Memanggil fungsi untuk menarik saldo
+        }
+        else if (pilihan == 4){
+            cout << "\n==== Terima kasih telah menggunakan layanan ATM ====\n";
+            return 0;// Keluar dari program
+        }
+        else {// Menangani input yang salah
+            cout << "Inputan salah\nSilahkan ulangi.\n";
+        }
+    } while (true);// Loop berlanjut sampai keluar pengguna menghentikan program
+
+    return 0;
+}
