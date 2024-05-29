@@ -1,99 +1,216 @@
-#include<iostream>
-#include<conio.h>
+#include <iostream> // Menyertakan header file iostream untuk input/output standar
+#include <string> // Menyertakan header file string untuk operasi string
+#include <vector> // Menyertakan header file vector untuk menggunakan tipe data vector
+#include <cstdlib> // Menyertakan header file cstdlib untuk fungsi-fungsi seperti rand()
+#include <ctime> // Menyertakan header file ctime untuk fungsi time()
+#include <limits> // Menyertakan header file limits untuk mendapatkan nilai maksimum dari tipe data tertentu
 
-using namespace std;
+using namespace std; // Menggunakan namespace std untuk tidak perlu menuliskan std::
 
-int counter = 0;// Mendeklarasikan variabel global untuk menghitung transaksi
-const int MAX = 100;
-int totalSaldo[MAX];// Mendeklarasikan array untuk menyimpan saldo
+const int WITHDRAWAL_AMOUNTS[] = {50000, 100000, 200000, 500000, 1000000}; // Array konstanta untuk jumlah penarikan tunai
+const int NUM_WITHDRAWAL_AMOUNTS = sizeof(WITHDRAWAL_AMOUNTS) / sizeof(int); // Jumlah elemen dalam array WITHDRAWAL_AMOUNTS
+const int DEPOSIT_AMOUNTS[] = {50000, 100000, 200000, 500000, 1000000}; // Array konstanta untuk jumlah pengisian saldo
+const int NUM_DEPOSIT_AMOUNTS = sizeof(DEPOSIT_AMOUNTS) / sizeof(int); // Jumlah elemen dalam array DEPOSIT_AMOUNTS
 
-void tampilkanMenu(){// Prosedur untuk menampilkan pilihan menu
-    cout << "\nApa yang ingin Anda lakukan\n";
-    cout << "1. Isi ulang saldo\n";
-    cout << "2. Check saldo\n";
-    cout << "3. Tarik tunai\n";
-    cout << "4. Keluar\n\n";
+struct Account { // Struktur data untuk menyimpan informasi akun
+    int accountId; // ID akun
+    string username; // Username akun
+    string password; // Password akun
+    int balance; // Saldo akun
+};
+
+vector<Account*> accounts; // Vektor untuk menyimpan pointer ke objek Account
+
+void clearInputBuffer() { // Fungsi untuk membersihkan buffer input
+    cin.clear(); // Mengosongkan flag error pada stream input
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Mengabaikan semua karakter hingga new line
 }
 
-int isiUlangSaldo(int jumlahUang) { // Fungsi untuk isi ulang saldo
-    cout << "Berapa jumlah saldo yang ingin dimasukkan: Rp.";
-    cin >> jumlahUang;//Mengambil jumlah saldo dari input pengguna
+void createAccount() { // Fungsi untuk membuat akun baru
+    string username, password;
+    cout << "Masukkan username: "; // Meminta input username
+    getline(cin >> ws, username); // Membaca input username dengan mengabaikan whitespace
 
-    counter++;// Menambahkan hitungan untuk jumlah transaksi
+    cout << "Masukkan password: "; // Meminta input password
+    getline(cin >> ws, password); // Membaca input password dengan mengabaikan whitespace
 
-    if (jumlahUang >= 0){// Memeriksa apakah jumlah uang yang dimasukkan lebih besar dari atau sama dengan 0
-        for (int i = 0; i < counter; i++){// Loop untuk Menambahkan jumlah uang yang ditambahkan ke saldo
-            totalSaldo[i] += jumlahUang;
-        }
-    cout << "Saldo berhasil ditambahkan.\n";
-    getch();
+    static bool seedInitialized = false; // Flag untuk memastikan seed random hanya diinisialisasi sekali
+    if (!seedInitialized) { // Jika seed belum diinisialisasi
+        srand(time(NULL)); // Menginisialisasi seed random dengan waktu saat ini
+        seedInitialized = true; // Menandai seed sudah diinisialisasi
     }
-    else if (jumlahUang < 0){// Memeriksa apakah jumlah uang yang dimasukkan kurang dari atau sama dengan 0
-        cout << "Saldo gagal ditambahkan.\n";// Pesan saldo gagal untuk ditambahkan
-        cout << "Silahkan kembali\n";
-        getch();
-    }
-    else {// Menangani input yang salah
-        cout << "Inputan salah\nSilahkan ulangi.\n";
-        isiUlangSaldo(jumlahUang);// Memanggil fungsi secara rekursif untuk mencoba mengisi saldo lagi
-    }
+    int accountId = rand() % 1000000; // Menghasilkan ID akun secara acak antara 0 dan 999999
 
-    return totalSaldo[counter];// Return nilai saldo dengan array berdasarkan jumlah counter
+    Account* newAccount = new Account{accountId, username, password, 0}; // Membuat objek Account baru dengan saldo awal 0
+    accounts.push_back(newAccount); // Menambahkan pointer ke objek Account ke vektor accounts
+
+    cout << "Akun berhasil dibuat dengan ID: " << accountId << endl; // Menampilkan ID akun yang baru dibuat
 }
 
-void checkSaldo(int jumlahUang){//Prosedur untuk memeriksa saldo
-    cout << "Saldo tersisa: Rp." << *totalSaldo << endl;
-    getch();
+int login() { // Fungsi untuk melakukan login
+    int accountId;
+    string username, password;
+
+    cout << "Masukkan ID akun: "; // Meminta input ID akun
+    while (!(cin >> accountId)) { // Jika input bukan angka
+        cout << "Input tidak valid. Masukkan angka untuk ID akun: "; // Meminta input yang valid
+        clearInputBuffer(); // Membersihkan buffer input
+    }
+
+    cin.ignore(); // Mengabaikan karakter new line setelah input ID akun
+
+    cout << "Masukkan username: "; // Meminta input username
+    getline(cin, username); // Membaca input username
+
+    cout << "Masukkan password: "; // Meminta input password
+    getline(cin, password); // Membaca input password
+
+    for (int i = 0; i < accounts.size(); i++) { // Mencari akun yang sesuai dengan ID, username, dan password
+        if (accounts[i]->accountId == accountId && accounts[i]->username == username && accounts[i]->password == password) {
+            return i; // Mengembalikan indeks akun yang ditemukan
+        }
+    }
+
+    cout << "ID akun, username, atau password salah." << endl; // Jika tidak ditemukan akun yang sesuai
+    return -1; // Mengembalikan -1 (tidak ditemukan)
 }
 
-int tarikSaldo(int jumlahUang){// Fungsi untuk menarik saldo
-    cout << "Berapa jumlah tunai yang ingin ditarik: Rp.";
-    cin >> jumlahUang;// Menagmbil jumlah saldo yang ingin ditarik
+void withdrawCash(int accountIndex) { // Fungsi untuk melakukan penarikan tunai
+    int choice, amount;
 
-    if (jumlahUang <= *totalSaldo){// Memeriksa apakah jumlah penarikan kurang dari atau sama dengan saldo
-        for (int i = 0; i < counter; i++){// Loop untuk mengurangi jumlah uang penarikan dari saldo
-            totalSaldo[i] -= jumlahUang;
+    cout << "Pilih jumlah yang ingin ditarik:" << endl; // Menampilkan pilihan jumlah penarikan
+    for (int i = 0; i < NUM_WITHDRAWAL_AMOUNTS; i++) { // Menampilkan pilihan jumlah penarikan yang tersedia
+        cout << i + 1 << ". " << WITHDRAWAL_AMOUNTS[i] << endl;
+    }
+    cout << NUM_WITHDRAWAL_AMOUNTS + 1 << ". Jumlah lain" << endl; // Pilihan untuk memasukkan jumlah lain
+    cout << "Masukkan pilihan Anda: "; // Meminta input pilihan
+
+    while (!(cin >> choice) || choice < 1 || choice > NUM_WITHDRAWAL_AMOUNTS + 1) { // Jika input tidak valid
+        cout << "Input tidak valid. Masukkan pilihan yang valid: "; // Meminta input yang valid
+        clearInputBuffer(); // Membersihkan buffer input
+    }
+
+    if (choice == NUM_WITHDRAWAL_AMOUNTS + 1) { // Jika memilih jumlah lain
+        cout << "Masukkan jumlah yang ingin ditarik: "; // Meminta input jumlah
+        while (!(cin >> amount) || amount <= 0) { // Jika input tidak valid atau kurang dari atau sama dengan 0
+            cout << "Input tidak valid. Masukkan jumlah yang valid: "; // Meminta input yang valid
+            clearInputBuffer(); // Membersihkan buffer input
         }
-        cout << "Saldo tersisa: Rp." << *totalSaldo << endl;// Pemberitahuan keterangan sisa saldo
-        getch();
+    } else { // Jika memilih jumlah yang tersedia
+        amount = WITHDRAWAL_AMOUNTS[choice - 1]; // Mengambil jumlah dari array WITHDRAWAL_AMOUNTS
     }
-    else if (jumlahUang >= *totalSaldo){// Memeriksa apakah jumlah penarikan lebih besar dari atau sama dengan saldo
-        cout << "Saldo kurang, tidak dapat melakukan tarik tunai\nIsi terlebih dahulu saldo Anda.\n";// pesan saldo tidak mencukupi
+
+    if (amount > accounts[accountIndex]->balance) { // Jika jumlah penarikan melebihi saldo
+        cout << "Saldo tidak mencukupi." << endl; // Menampilkan pesan saldo tidak mencukupi
+        return; // Keluar dari fungsi
     }
-    else {// Menangani input yang salah
-        cout << "Inputan salah\nSilahkan ulangi.\n";
-        tarikSaldo(jumlahUang);// Memanggil fungsi secara rekursif untuk mencoba penarikan lagi
-    }
-    return totalSaldo[counter];// Return nilai saldo dengan array berdasarkan jumlah counter
+
+    accounts[accountIndex]->balance -= amount; // Mengurangi saldo dengan jumlah penarikan
+    cout << "Penarikan tunai sebesar " << amount << " berhasil." << endl; // Menampilkan pesan penarikan berhasil
 }
 
-int main(){// Fungsi utama
-    int jumlahUang;// Mendeklarasikan variabel untuk menyimpan jumlah uang
+void checkBalance(int accountIndex) { // Fungsi untuk memeriksa saldo
+    cout << "Saldo Anda: " << accounts[accountIndex]->balance << endl; // Menampilkan saldo akun
+}
 
-    int pilihan;// Mendeklarasikan variabel untuk menyimpan pilihan
+void depositCash(int accountIndex) { // Fungsi untuk melakukan pengisian saldo
+    int choice, amount;
 
-    cout << "==== SELAMAT DATANG DI ATM ====\n";
+    cout << "Pilih jumlah yang ingin diisi:" << endl; // Menampilkan pilihan jumlah pengisian
+    for (int i = 0; i < NUM_DEPOSIT_AMOUNTS; i++) { // Menampilkan pilihan jumlah pengisian yang tersedia
+        cout << i + 1 << ". " << DEPOSIT_AMOUNTS[i] << endl;
+    }
+    cout << NUM_DEPOSIT_AMOUNTS + 1 << ". Jumlah lain" << endl; //
+    cout << "Masukkan pilihan Anda: "; // Meminta input pilihan
 
-    do {// Loop untuk menampilkan menu dan menangani pilihan
-        tampilkanMenu();// Memanggil fungsi untuk menampilkan menu
-        cout << "Masukkan pilihan: "; cin >> pilihan;
-        if (pilihan == 1){
-            isiUlangSaldo(jumlahUang);// Memanggil fungsi untuk isi ulang saldo
-        }
-        else if (pilihan == 2){
-            checkSaldo(jumlahUang);// Memanggil prosedur untuk memeriksa saldo
-        }
-        else if (pilihan == 3){
-            tarikSaldo(jumlahUang);// Memanggil fungsi untuk menarik saldo
-        }
-        else if (pilihan == 4){
-            cout << "\n==== Terima kasih telah menggunakan layanan ATM ====\n";
-            return 0;// Keluar dari program
-        }
-        else {// Menangani input yang salah
-            cout << "Inputan salah\nSilahkan ulangi.\n";
-        }
-    } while (true);// Loop berlanjut sampai keluar pengguna menghentikan program
+   while (!(cin >> choice) || choice < 1 || choice > NUM_DEPOSIT_AMOUNTS + 1) { // Jika input tidak valid
+       cout << "Input tidak valid. Masukkan pilihan yang valid: "; // Meminta input yang valid
+       clearInputBuffer(); // Membersihkan buffer input
+   }
 
-    return 0;
+   if (choice == NUM_DEPOSIT_AMOUNTS + 1) { // Jika memilih jumlah lain
+       cout << "Masukkan jumlah yang ingin diisi: "; // Meminta input jumlah
+       while (!(cin >> amount) || amount <= 0) { // Jika input tidak valid atau kurang dari atau sama dengan 0
+           cout << "Input tidak valid. Masukkan jumlah yang valid: "; // Meminta input yang valid
+           clearInputBuffer(); // Membersihkan buffer input
+       }
+   } else { // Jika memilih jumlah yang tersedia
+       amount = DEPOSIT_AMOUNTS[choice - 1]; // Mengambil jumlah dari array DEPOSIT_AMOUNTS
+   }
+
+   accounts[accountIndex]->balance += amount; // Menambahkan jumlah pengisian ke saldo akun
+   cout << "Pengisian saldo sebesar " << amount << " berhasil." << endl; // Menampilkan pesan pengisian saldo berhasil
+}
+
+int main() { // Fungsi utama
+   int choice, accountIndex;
+
+   while (true) { // Loop utama program
+       cout << "\n===== Selamat Datang di ATM =====" << endl; // Menampilkan menu utama
+       cout << "1. Buat Akun Baru" << endl; // Pilihan untuk membuat akun baru
+       cout << "2. Login" << endl; // Pilihan untuk melakukan login
+       cout << "3. Keluar" << endl; // Pilihan untuk keluar dari program
+       cout << "Masukkan pilihan Anda: "; // Meminta input pilihan
+
+       while (!(cin >> choice) || choice < 1 || choice > 3) { // Jika input tidak valid
+           cout << "Input tidak valid. Masukkan pilihan yang valid: "; // Meminta input yang valid
+           clearInputBuffer(); // Membersihkan buffer input
+       }
+
+       switch (choice) { // Melakukan aksi sesuai pilihan
+           case 1: // Membuat akun baru
+               createAccount();
+               break;
+           case 2: // Melakukan login
+               accountIndex = login();
+               if (accountIndex != -1) { // Jika login berhasil
+                   while (true) { // Loop menu ATM
+                       cout << "\n===== Menu ATM =====" << endl; // Menampilkan menu ATM
+                       cout << "1. Tarik Tunai" << endl; // Pilihan untuk melakukan penarikan tunai
+                       cout << "2. Cek Saldo" << endl; // Pilihan untuk memeriksa saldo
+                       cout << "3. Isi Saldo" << endl; // Pilihan untuk melakukan pengisian saldo
+                       cout << "4. Keluar" << endl; // Pilihan untuk keluar dari menu ATM
+                       cout << "Masukkan pilihan Anda: "; // Meminta input pilihan
+
+                       while (!(cin >> choice) || choice < 1 || choice > 4) { // Jika input tidak valid
+                           cout << "Input tidak valid. Masukkan pilihan yang valid: "; // Meminta input yang valid
+                           clearInputBuffer(); // Membersihkan buffer input
+                       }
+
+                       switch (choice) { // Melakukan aksi sesuai pilihan pada menu ATM
+                           case 1: // Melakukan penarikan tunai
+                               withdrawCash(accountIndex);
+                               break;
+                           case 2: // Memeriksa saldo
+                               checkBalance(accountIndex);
+                               break;
+                           case 3: // Melakukan pengisian saldo
+                               depositCash(accountIndex);
+                               break;
+                           case 4: // Keluar dari menu ATM
+                               cout << "Terima kasih telah menggunakan ATM." << endl;
+                               return 0; // Mengakhiri program
+                           default:
+                               cout << "Pilihan tidak valid." << endl; // Jika input tidak valid
+                               break;
+                       }
+                   }
+               }
+               break;
+           case 3: // Keluar dari program
+               cout << "Terima kasih telah menggunakan ATM." << endl; // Menampilkan pesan terima kasih
+
+               for (int i = 0; i < accounts.size(); i++) { // Membebaskan memori yang dialokasikan untuk objek Account
+                   delete accounts[i];
+               }
+               accounts.clear(); // Mengosongkan vektor accounts
+
+               return 0; // Mengakhiri program
+           default:
+               cout << "Pilihan tidak valid." << endl; // Jika input tidak valid
+               break;
+       }
+   }
+
+   return 0; // Mengakhiri program
 }
